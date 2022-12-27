@@ -72,17 +72,19 @@ if __name__ == '__main__':
     pages = convert_from_path(pdf_file)
     results = []
     for i, page in enumerate(pages):
-        png_file = f'{pdf_name}_page_{i+1}.png'
+        png_file = f'pngs/{pdf_name}_page_{i+1}.png'
         page.save(png_file, 'PNG')
         result = annotate(png_file)
         if result is None:
             continue
         report(result)
+        results.append(result)
     with open(f'{pdf_name}_results.csv', 'w', newline='') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=['page', 'url', 'score'])
         writer.writeheader()
-        for image in result.full_matching_images:
-            writer.writerow([i, image.url, 1])
-        for image in result.pages_with_matching_images:
-            writer.writerow([i, image.url, 0.5])
+        for result in results:
+            for image in result.full_matching_images:
+                writer.writerow({'page':i, 'url':image.url, 'score':1})
+            for image in result.pages_with_matching_images:
+                writer.writerow({'page':i, 'url':image.url, 'score':0.5})
     print(f'Results saved to {pdf_name}_results.csv')
