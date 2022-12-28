@@ -11,9 +11,11 @@ from pdf2image import convert_from_path
 from google.oauth2 import service_account
 from google.cloud import vision
 
+import requests
+from bs4 import BeautifulSoup
+
 ## annotate & report functions from this Tutorial:
 ## https://cloud.google.com/vision/docs/internet-detection?_gl=1*q4g24p*_ga*MTQ5NjY0OTc5NC4xNjcxOTkyNTYx*_ga_WH2QY8WWF5*MTY3MjA2OTI5NS4yLjEuMTY3MjA2OTM4MS4wLjAuMA..&_ga=2.101522433.-1496649794.1671992561
-
 def annotate(path):
     """Returns web annotations given the path to an image."""
     client = vision.ImageAnnotatorClient()
@@ -87,8 +89,81 @@ def extract_and_annotate(pdf_file):
     print(f'Results saved to {pdf_name}_results.csv')
     scrape_for_price(f'{pdf_name}_results.csv')
 
-def scrape_for_price(csv):
-    # TODO
+def scrape_for_price(input_csv):
+    csv_name, _ = os.path.splitext(input_csv)
+    with open(input_csv, 'r') as csv_in:
+        reader = csv.reader(csv_in)
+        header = next(reader)
+        header.append('price')
+        with open(f'{csv_name}_prices.csv', 'w', newline='') as csv_out:
+            writer = csv.writer(csv_out)
+            writer.writerow(header)
+            for row in reader:
+                url = row[1]
+                price = average_price(url)
+                row.append(price)
+                writer.writerow(row)
+    print(f'Prices added to {csv_name}_prices.csv')
+
+def average_price(url):
+    print(f'Calling average_price with url: {url}')
+    # Fetch the HTML content of the page
+    headers = {
+        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+    }
+    html = requests.get(url, headers=headers, allow_redirects=False).text
+    # Parse the HTML content
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # Check if the URL is an eBay URL
+    if 'ebay.com/b' in url:
+        # Find all span elements with class "s-item__price"
+        price_spans = soup.find_all('span', class_='s-item__price')
+        # Extract the numeric values from the spans
+        prices = []
+        for span in price_spans:
+            # Split the span text by spaces and take the first numeric value
+            value = span.text.strip().split()[0]
+            # Ensures any commas are removed from long numbers
+            value = value.replace(",", "")
+            # Remove the leading "$" character and convert to float
+            try:
+                value = float(value[1:])
+            except ValueError:
+                # Skip the span if the value is not numeric
+                continue
+            prices.append(value)   
+
+        if len(prices) > 0:     
+            # Calculate and return the average of the values
+            print(f'Returning price for ebay URL: {sum(prices) / len(prices)}')
+            return sum(prices) / len(prices)
+    # TODO -- <span itemprop=price content=9.55><!--F#0--><!--F#f_1--><!--F#1[0]--><span class=ux-textspans><!--F#f_7[0]-->US $9.55<!--F/--></span><!--F/--><!--F/--><!--F/--></span>
+    elif 'ebay.com/itm' in url:
+        # # Find all span elements with class "s-item__price"
+        # price_spans = soup.find_all('span', class_='s-item__price')
+        # # Extract the numeric values from the spans
+        # prices = []
+        # for span in price_spans:
+        #     # Split the span text by spaces and take the first numeric value
+        #     value = span.text.strip().split()[0]
+        #     # Ensures any commas are removed from long numbers
+        #     value = value.replace(",", "")
+        #     # Remove the leading "$" character and convert to float
+        #     try:
+        #         value = float(value[1:])
+        #     except ValueError:
+        #         # Skip the span if the value is not numeric
+        #         continue
+        #     prices.append(value)   
+
+        # if len(prices) > 0:     
+        #     # Calculate and return the average of the values
+        #     print(f'Returning price for ebay URL: {sum(prices) / len(prices)}')
+        #     return sum(prices) / len(prices)
+    
+    # Otherwise...
+    print(f'Returning price for non-ebay URL: {0}')
     return 0
 
 if __name__ == '__main__':

@@ -19,6 +19,7 @@ python3 -m pip install --upgrade setuptools
 python3 -m pip install --upgrade google-api-python-client
 python3 -m pip install --upgrade google-cloud-vision
 python3 -m pip install pdf2image
+python3 -m pip install bs4
 
 #### Usage
 
