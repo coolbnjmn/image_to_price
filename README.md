@@ -11,6 +11,8 @@ This is a simple script that leverages Google's Cloud Vision API to take images 
 
 This is currently formatted to receive an input PDF of images, which are in my personal use case coming from ScanSnap, where trading cards are being scanned to be catalogued and valued.
 
+You will need Google Cloud Vision API credentials. 
+
 #### Installation
 
 Python v3.9.7
@@ -18,10 +20,15 @@ Python v3.9.7
 brew install poppler
 
 python3 -m pip install --upgrade tensorboard
+
 python3 -m pip install --upgrade setuptools
+
 python3 -m pip install --upgrade google-api-python-client
+
 python3 -m pip install --upgrade google-cloud-vision
+
 python3 -m pip install pdf2image
+
 python3 -m pip install bs4
 
 #### Usage
