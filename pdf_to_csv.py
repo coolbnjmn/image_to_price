@@ -98,10 +98,21 @@ def scrape_for_price(input_csv):
         with open(f'{csv_name}_prices.csv', 'w', newline='') as csv_out:
             writer = csv.writer(csv_out)
             writer.writerow(header)
+            # Aggregate rows by page and calculate the average price
+            pages = {}
             for row in reader:
+                page = row[0]
                 url = row[1]
                 price = average_price(url)
-                row.append(price)
+                if page in pages:
+                    pages[page]['prices'].append(price)
+                else:
+                    pages[page] = {'row': row, 'prices': [price]}
+            # Write the aggregated rows to the output CSV file
+            for page, data in pages.items():
+                avg_price = sum(data['prices']) / len(data['prices'])
+                row = data['row']
+                row.append(avg_price)
                 writer.writerow(row)
     print(f'Prices added to {csv_name}_prices.csv')
 
