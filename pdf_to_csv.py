@@ -138,29 +138,26 @@ def average_price(url):
             # Calculate and return the average of the values
             print(f'Returning price for ebay URL: {sum(prices) / len(prices)}')
             return sum(prices) / len(prices)
-    # TODO -- <span itemprop=price content=9.55><!--F#0--><!--F#f_1--><!--F#1[0]--><span class=ux-textspans><!--F#f_7[0]-->US $9.55<!--F/--></span><!--F/--><!--F/--><!--F/--></span>
     elif 'ebay.com/itm' in url:
-        # # Find all span elements with class "s-item__price"
-        # price_spans = soup.find_all('span', class_='s-item__price')
-        # # Extract the numeric values from the spans
-        # prices = []
-        # for span in price_spans:
-        #     # Split the span text by spaces and take the first numeric value
-        #     value = span.text.strip().split()[0]
-        #     # Ensures any commas are removed from long numbers
-        #     value = value.replace(",", "")
-        #     # Remove the leading "$" character and convert to float
-        #     try:
-        #         value = float(value[1:])
-        #     except ValueError:
-        #         # Skip the span if the value is not numeric
-        #         continue
-        #     prices.append(value)   
+        # Find all span elements with "itemprop=price" elements
+        price_spans = soup.find_all('span', attrs={'itemprop': 'price'})
+        print(price_spans)
+        # Extract the numeric values from the spans
+        prices = []
+        for span in price_spans:
+            try:
+                value = float(span['content'])
+            except ValueError:
+                # Skip the span if the value is not numeric
+                continue
+            prices.append(value)   
 
-        # if len(prices) > 0:     
-        #     # Calculate and return the average of the values
-        #     print(f'Returning price for ebay URL: {sum(prices) / len(prices)}')
-        #     return sum(prices) / len(prices)
+        if len(prices) > 0:     
+            # Calculate and return the average of the values
+            print(f'Returning price for ebay URL: {sum(prices) / len(prices)}')
+            return sum(prices) / len(prices)
+        else:
+            print('ebay.com/item URL with no prices found')
     
     # Otherwise...
     print(f'Returning price for non-ebay URL: {0}')
